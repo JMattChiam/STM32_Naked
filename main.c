@@ -3,9 +3,17 @@
 
 #define LED_PIN 5
 
+void clock_init(); 
+void delay_ms(uint32_t milliseconds);
+
+volatile uint32_t ticks;
+
+
 void main(void)
 {
-    //
+    clock_init();
+    SystemCoreClockUpdate();
+
     RCC->AHBENR |= (1 << RCC_AHBENR_GPIOAEN_Pos);
 
     // do two dummy reads after enabling the peripheral clock, as per the errata
@@ -15,9 +23,53 @@ void main(void)
 
     GPIOA->MODER |= (1 << GPIO_MODER_MODER5_Pos);
 
+    SysTick_Config(48000);
+    __enable_irq();
+
     while(1)
     {
         GPIOA->ODR ^= (1 << LED_PIN);
-        for (uint32_t i = 0; i < 100000; i++); // wait for some time
+        delay_ms(500);
     }
+}
+
+
+// Initialize the clock. Use external HSE clock from the ST-Link MCU at 8MHz
+void clock_init() 
+{   
+    RCC->CR |= RCC_CR_HSEBYP_Msk | RCC_CR_HSEON_Msk;
+    while (!(RCC->CR & RCC_CR_HSERDY_Msk));
+
+    FLASH->ACR |= FLASH_ACR_LATENCY; 
+
+    // Configure the PLL
+    RCC->CFGR |= RCC_CFGR_PLLSRC_HSE_PREDIV; 
+    RCC->CFGR |= RCC_CFGR_PLLMUL6;   
+
+    // Enable PLL and wait for ready
+    RCC->CR |= RCC_CR_PLLON_Msk;
+    while (! (RCC->CR & RCC_CR_PLLRDY_Msk));
+
+    RCC->CFGR |= RCC_CFGR_SW_PLL;
+    while (! (RCC->CFGR & RCC_CFGR_SW_PLL));
+}
+
+
+void delay_ms(uint32_t milliseconds)
+{
+  uint32_t start = ticks;
+  uint32_t end = start + milliseconds;
+
+  if (end < start) // handle overflow
+  {
+    while (ticks > start); // wait for ticks to wrap around to zero
+  }
+
+  while (ticks < end);
+}
+
+
+void systick_handler()
+{
+  ticks++;
 }
