@@ -104,6 +104,7 @@ uint32_t isr_vector[ISR_VECTOR_SIZE_WORDS] __attribute__((section(".isr_vector")
 // These pointers to the memory sections are defined in the linker script
 extern uint32_t _etext, _sdata, _edata, _sbss, _ebss, _sidata;
 void main(void);
+void __libc_init_array();
 
 void reset_handler(void)
 {
@@ -126,6 +127,7 @@ void reset_handler(void)
     bss[i] = 0;
   }
   
+  __libc_init_array();
   main();
 }
 

@@ -1,4 +1,6 @@
 #include <stdint.h>
+#include <stdio.h>
+#include "usart.h"
 #include "stm32f072xb.h"
 
 #define LED_PIN 5
@@ -12,6 +14,7 @@ volatile uint32_t ticks;
 void main(void)
 {
     clock_init();
+    usart_init(USART2);
     SystemCoreClockUpdate();
 
     RCC->AHBENR |= (1 << RCC_AHBENR_GPIOAEN_Pos);
@@ -23,12 +26,13 @@ void main(void)
 
     GPIOA->MODER |= (1 << GPIO_MODER_MODER5_Pos);
 
-    SysTick_Config(48000);
-    __enable_irq();
+    SysTick_Config(48000); // Configure the timer reload value
+    __enable_irq(); //systick is an interrupt that calls systick_handler()
 
     while(1)
     {
         GPIOA->ODR ^= (1 << LED_PIN);
+        printf("[%.3f] Hello, World!\r\n", (float)ticks/1000.0);
         delay_ms(500);
     }
 }
@@ -69,6 +73,7 @@ void delay_ms(uint32_t milliseconds)
 }
 
 
+// Redefinition of the handler specified in startup.c 
 void systick_handler()
 {
   ticks++;
