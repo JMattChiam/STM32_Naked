@@ -1,5 +1,6 @@
 # To compile:
-arm-none-eabi-gcc main.c startup.c -T linker_script.ld -o blink.elf -mcpu=cortex-m0 -mthumb -nostdlib
+Part 1: arm-none-eabi-gcc main.c startup.c -T linker_script.ld -o blink.elf -mcpu=cortex-m0 -mthumb -nostdlib
+Part 2: arm-none-eabi-gcc main.c startup.c vendor/CMSIS_5/Device/ST/STM32F0/Source/Templates/system_stm32f0xx.c -T linker_script.ld -o blink.elf -Ivendor/CMSIS_5/CMSIS/Core/Include -Ivendor/CMSIS_5/Device/ST/STM32F0/Include -mcpu=cortex-m0 -mthumb -nostdlib -DSTM32F072xB -lgcc
 
 # To program using OpenOCD:
 openocd -f interface/stlink.cfg -f target/stm32f0x.cfg -c "program blink.elf verify reset exit"

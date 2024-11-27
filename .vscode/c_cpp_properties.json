@@ -3,7 +3,9 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/vendor**",
+                "${workspaceFolder}/vendor/CMSIS_5**"
             ],
             "defines": [
                 "_DEBUG",
